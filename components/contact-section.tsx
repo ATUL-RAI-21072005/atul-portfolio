@@ -44,16 +44,39 @@ function ContactForm() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: "30375166-5e5d-48bc-90e9-91eadaeff9ef",
+          ...formState,
+          subject: `New contact form submission from ${formState.name}`,
+        }),
+      })
 
-    toast({
-      title: "Message sent!",
-      description: "Thanks for reaching out. I'll get back to you soon.",
-    })
-
-    setFormState({ name: "", email: "", message: "" })
-    setIsSubmitting(false)
+      const result = await response.json()
+      if (result.success) {
+        toast({
+          title: "Message sent!",
+          description: "Thanks for reaching out. I'll get back to you soon.",
+        })
+        setFormState({ name: "", email: "", message: "" })
+      } else {
+        throw new Error("Form submission failed")
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again later.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
