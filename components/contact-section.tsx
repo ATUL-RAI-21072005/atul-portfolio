@@ -6,8 +6,6 @@ import { useEffect, useRef, useState } from "react"
 import { motion, useInView } from "framer-motion"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Canvas } from "@react-three/fiber"
-import { PerspectiveCamera, Environment, Html } from "@react-three/drei"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -26,11 +24,20 @@ function ContactForm() {
     message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [focused, setFocused] = useState<string | null>(null)
   const { toast } = useToast()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormState((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleFocus = (name: string) => {
+    setFocused(name)
+  }
+
+  const handleBlur = () => {
+    setFocused(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,75 +57,114 @@ function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="space-y-4">
-        <div>
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className="w-full max-w-2xl mx-auto backdrop-blur-md bg-background/40 p-10 rounded-xl shadow-lg border border-primary/10"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h3 className="text-2xl font-semibold mb-8 text-center">Send a Message</h3>
+      
+      <div className="space-y-6">
+        <div className="relative">
+          <motion.div 
+            className="absolute inset-0 rounded-md -z-10"
+            animate={{
+              backgroundColor: focused === 'name' ? 'rgba(138, 43, 226, 0.05)' : 'rgba(138, 43, 226, 0)'
+            }}
+            transition={{ duration: 0.2 }}
+          />
+          <label className="text-base font-medium text-foreground/70 block mb-2 ml-1">
+            Name
+          </label>
           <Input
             name="name"
-            placeholder="Your Name"
+            placeholder="John Doe"
             value={formState.name}
             onChange={handleChange}
+            onFocus={() => handleFocus('name')}
+            onBlur={handleBlur}
             required
-            className="bg-background/80 backdrop-blur-sm border-primary/20 focus:border-primary"
+            className="bg-background/40 border border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 rounded-md transition-all duration-200 text-base h-12 px-4"
           />
         </div>
-        <div>
+        
+        <div className="relative">
+          <motion.div 
+            className="absolute inset-0 rounded-md -z-10"
+            animate={{
+              backgroundColor: focused === 'email' ? 'rgba(138, 43, 226, 0.05)' : 'rgba(138, 43, 226, 0)'
+            }}
+            transition={{ duration: 0.2 }}
+          />
+          <label className="text-base font-medium text-foreground/70 block mb-2 ml-1">
+            Email
+          </label>
           <Input
             name="email"
             type="email"
-            placeholder="Your Email"
+            placeholder="john@example.com"
             value={formState.email}
             onChange={handleChange}
+            onFocus={() => handleFocus('email')}
+            onBlur={handleBlur}
             required
-            className="bg-background/80 backdrop-blur-sm border-primary/20 focus:border-primary"
+            className="bg-background/40 border border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 rounded-md transition-all duration-200 text-base h-12 px-4"
           />
         </div>
-        <div>
+        
+        <div className="relative">
+          <motion.div 
+            className="absolute inset-0 rounded-md -z-10"
+            animate={{
+              backgroundColor: focused === 'message' ? 'rgba(138, 43, 226, 0.05)' : 'rgba(138, 43, 226, 0)'
+            }}
+            transition={{ duration: 0.2 }}
+          />
+          <label className="text-base font-medium text-foreground/70 block mb-2 ml-1">
+            Message
+          </label>
           <Textarea
             name="message"
-            placeholder="Your Message"
+            placeholder="What would you like to discuss?"
             value={formState.message}
             onChange={handleChange}
+            onFocus={() => handleFocus('message')}
+            onBlur={handleBlur}
             required
-            className="min-h-[120px] bg-background/80 backdrop-blur-sm border-primary/20 focus:border-primary"
+            className="min-h-[150px] bg-background/40 border border-primary/20 focus-visible:ring-primary/30 focus-visible:border-primary/50 rounded-md resize-none transition-all duration-200 text-base p-4"
           />
         </div>
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Sending..." : "Send Message"}
-          <SendIcon className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    </form>
-  )
-}
-
-function Scene() {
-  return (
-    <>
-      <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={0.5} />
-      <pointLight position={[-10, -10, -10]} intensity={0.2} />
-
-      {/* Grid background */}
-      <gridHelper args={[30, 30, "#8a2be2", "#8a2be2"]} position={[0, -3, 0]} rotation={[Math.PI / 2, 0, 0]} />
-
-      {/* Contact form */}
-      <group position={[0, 0, 0]}>
-        <Html
-          transform
-          distanceFactor={1.5}
-          position={[0, 0, 0]}
-          rotation={[0, 0, 0]}
-          zIndexRange={[100, 0]}
-          className="contact-form-container"
+        
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="mt-4"
         >
-          <ContactForm />
-        </Html>
-      </group>
-
-      <Environment preset="city" />
-    </>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full bg-primary hover:bg-primary/90 text-white py-6 rounded-md transition-all duration-300 shadow-md text-lg h-14"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Sending...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center">
+                Send Message
+                <SendIcon className="ml-2 h-5 w-5" />
+              </span>
+            )}
+          </Button>
+        </motion.div>
+      </div>
+    </motion.form>
   )
 }
 
@@ -140,7 +186,7 @@ export default function ContactSection() {
 
     tl.fromTo(".contact-header", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" })
 
-    tl.fromTo(".contact-canvas", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.4")
+    tl.fromTo(".contact-form", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.4")
 
     // Animate the bouncing arrow
     gsap.to(".bounce-arrow", {
@@ -160,6 +206,7 @@ export default function ContactSection() {
     <section id="contact" ref={sectionRef} className="py-20 md:py-32 bg-background/50 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl -z-10" />
 
       <div className="container mx-auto px-4">
         <motion.div
@@ -178,10 +225,8 @@ export default function ContactSection() {
           </div>
         </motion.div>
 
-        <div className="contact-canvas h-[500px] md:h-[600px] w-full max-w-4xl mx-auto">
-          <Canvas>
-            <Scene />
-          </Canvas>
+        <div className="contact-form max-w-3xl mx-auto">
+          <ContactForm />
         </div>
       </div>
     </section>
